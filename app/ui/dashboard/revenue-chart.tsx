@@ -1,16 +1,16 @@
 import { generateYAxis } from '@/app/lib/utils';
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
+import { fetchRevenue } from '@/app/lib/data';
 import { Revenue } from '@/app/lib/definitions';
 
-// Este componente muestra el gráfico de ingresos recientes
-export default function RevenueChart({ revenue }: { revenue: Revenue[] }) {
+export default async function RevenueChart() {
+  // 🔥 Ahora el componente hace su propio fetch
+  const revenue = await fetchRevenue();
+
   const chartHeight = 350;
+  const { yAxisLabels, topLabel } = generateYAxis(revenue as Revenue[]);
 
-  // Generar labels del eje Y y valor máximo
-  const { yAxisLabels, topLabel } = generateYAxis(revenue);
-
-  // Si no hay datos
   if (!revenue || revenue.length === 0) {
     return (
       <div className="w-full md:col-span-4">

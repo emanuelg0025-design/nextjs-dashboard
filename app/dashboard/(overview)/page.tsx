@@ -1,30 +1,23 @@
-export const dynamic = 'force-dynamic';
-
-
+import { Suspense } from 'react';
 import { Card } from '@/app/ui/dashboard/cards';
 import RevenueChart from '@/app/ui/dashboard/revenue-chart';
 import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
 import { lusitana } from '@/app/ui/fonts';
-import {
-  fetchRevenue,
-  fetchLatestInvoices,
-  fetchCardData,
-} from '@/app/lib/data';
+import { fetchLatestInvoices, fetchCardData } from '@/app/lib/data';
+import { RevenueChartSkeleton } from '@/app/ui/skeletons';
+
+export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  // 🚀 Parallel fetching (Promise.all) para evitar "network waterfall"
-  const [revenue, latestInvoices, cardData] = await Promise.all([
-    fetchRevenue(),
-    fetchLatestInvoices(),
-    fetchCardData(),
-  ]);
+  // ❌ fetchRevenue YA NO SE USA
+  const latestInvoices = await fetchLatestInvoices();
 
   const {
-    numberOfCustomers,
     numberOfInvoices,
+    numberOfCustomers,
     totalPaidInvoices,
     totalPendingInvoices,
-  } = cardData;
+  } = await fetchCardData();
 
   return (
     <main>
@@ -32,21 +25,22 @@ export default async function Page() {
         Dashboard
       </h1>
 
-      {/* Cards de arriba */}
+      {/* Cards */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Card title="Collected" value={totalPaidInvoices} type="collected" />
         <Card title="Pending" value={totalPendingInvoices} type="pending" />
         <Card title="Total Invoices" value={numberOfInvoices} type="invoices" />
-        <Card
-          title="Total Customers"
-          value={numberOfCustomers}
-          type="customers"
-        />
+        <Card title="Total Customers" value={numberOfCustomers} type="customers" />
       </div>
 
-      {/* Gráfica + últimas facturas */}
+      {/* RevenueChart + LatestInvoices */}
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
-        <RevenueChart revenue={revenue} />
+        
+        {/* STREAMING + SKELETON */}
+        <Suspense fallback={<RevenueChartSkeleton />}>
+          <RevenueChart />
+        </Suspense>
+
         <LatestInvoices latestInvoices={latestInvoices} />
       </div>
     </main>
