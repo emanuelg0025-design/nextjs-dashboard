@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Pagination from '@/app/ui/invoices/pagination';
 import Search from '@/app/ui/search';
 import Table from '@/app/ui/invoices/table';
@@ -7,15 +8,34 @@ import { Suspense } from 'react';
 import { InvoicesTableSkeleton } from '@/app/ui/skeletons';
 import { fetchInvoicesPages } from '@/app/lib/data';
 
-export default async function Page(props: {
-  searchParams?: Promise<{
-    query?: string;
-    page?: string;
-  }>;
+export const metadata: Metadata = {
+  title: 'Invoices',
+};
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: { query?: string | string[]; page?: string | string[] };
 }) {
-  const searchParams = (await props.searchParams) || {};
-  const query = searchParams.query || '';
-  const currentPage = Number(searchParams.page) || 1;
+  // Normalizar query
+  const queryParam = searchParams?.query;
+  const query =
+    typeof queryParam === 'string'
+      ? queryParam
+      : Array.isArray(queryParam)
+      ? queryParam[0] ?? ''
+      : '';
+
+  // Normalizar page
+  const pageParam = searchParams?.page;
+  const pageString =
+    typeof pageParam === 'string'
+      ? pageParam
+      : Array.isArray(pageParam)
+      ? pageParam[0]
+      : undefined;
+
+  const currentPage = pageString ? Number(pageString) || 1 : 1;
 
   // total de páginas depende del query
   const totalPages = await fetchInvoicesPages(query);
